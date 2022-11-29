@@ -1,0 +1,147 @@
+{
+  "StartAt": "Handle Garmin Webhook",
+  "States": {
+    "Handle Garmin Webhook": {
+      "Type": "Task",
+      "Resource": "${HandleGarminWebhookFunctionArn}",
+      "Next": "Check Webhook Type",
+      "Parameters": {
+        "result.$": "$.body"
+      },
+      "ResultSelector": {
+        "result.$": "States.StringToJson($.body)"
+      }
+    },
+    "Fetch Garmin Fit File": {
+      "Type": "Task",
+      "Resource": "${FetchGarminFitFileFunctionArn}",
+      "Next": "Save Garmin Webhook - Landing Zone",
+      "TimeoutSeconds": 60,
+      "ResultSelector": {
+        "result.$": "States.StringToJson($.body)"
+      }
+    },
+    "Check Webhook Type": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.result.type",
+          "StringEquals": "activityFiles",
+          "Next": "Fetch Garmin Fit File"
+        }
+      ],
+      "Default": "Save Garmin Webhook - Landing Zone"
+    },
+    "Save Garmin Webhook - Landing Zone": {
+      "Type": "Task",
+      "Resource": "${GarminWebhookLandingZoneFunctionArn}",
+      "TimeoutSeconds": 60,
+      "ResultSelector": {
+        "result.$": "States.StringToJson($.body)"
+      },
+      "Next": "Check Activity Type"
+    },
+    "Check Activity Type": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "And": [
+            {
+              "Variable": "$.result.type",
+              "StringEquals": "dailies"
+            },
+            {
+              "Variable": "$.result.applyMapState",
+              "BooleanEquals": true
+            }
+          ],
+          "Next": "Process Garmin Dailies MapState"
+        },
+        {
+          "Variable": "$.result.type",
+          "StringEquals": "activities",
+          "Next": "Process Garmin Activities"
+        }
+      ],
+      "Default": "Check Purpose Type"
+    },
+    "Process Garmin Dailies MapState": {
+      "Type": "Map",
+      "ItemsPath": "$.result.data",
+      "Parameters": {
+        "result": {
+          "type.$": "$.result.type",
+          "isBinary.$": "$.result.isBinary",
+          "sendDataToBackend.$": "$.result.sendDataToBackend",
+          "data.$": "$$.Map.Item.Value"
+        }
+      },
+      "MaxConcurrency": 0,
+      "Iterator": {
+        "StartAt": "Process Garmin Dailies",
+        "States": {
+          "Process Garmin Dailies": {
+            "Type": "Task",
+            "Resource": "${ProcessGarminDailiesFunctionArn}",
+            "End": true,
+            "TimeoutSeconds": 60,
+            "ResultSelector": {
+              "result.$": "States.StringToJson($.body)"
+            },
+            "OutputPath": "$.result"
+          }
+        }
+      },
+      "ResultSelector": {
+        "type.$": "$[0].type",
+        "isBinary.$": "$[0].isBinary",
+        "sendDataToBackend.$": "$[0].sendDataToBackend",
+        "data.$": "$[*].data"
+      },
+      "ResultPath": "$.result",
+      "Next": "Check Purpose Type"
+    },
+    "Process Garmin Activities": {
+      "Type": "Task",
+      "Resource": "${ProcessGarminActivitiesFunctionArn}",
+      "TimeoutSeconds": 60,
+      "ResultSelector": {
+        "result.$": "States.StringToJson($.body)"
+      },
+      "Next": "Check Purpose Type"
+    },
+    "Check Purpose Type": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.result.sendDataToBackend",
+          "BooleanEquals": true,
+          "Next": "Upload To Baseplatform"
+        }
+      ],
+      "Default": "Save Garmin Processed Data"
+    },
+    "Upload To Baseplatform": {
+      "Type": "Task",
+      "Resource": "${UploadBaseplatformFunctionArn}",
+      "TimeoutSeconds": 60,
+      "Parameters": {
+        "RetryCount.$": "$$.State.RetryCount",
+        "result.$": "$.result"
+      },
+      "ResultSelector": {
+        "result.$": "States.StringToJson($.body)"
+      },
+      "End": true
+    },
+    "Save Garmin Processed Data": {
+      "Type": "Task",
+      "Resource": "${SaveGarminWebhookProcessedFunctionArn}",
+      "TimeoutSeconds": 60,
+      "ResultSelector": {
+        "result.$": "States.StringToJson($.body)"
+      },
+      "End": true
+    }
+  }
+}

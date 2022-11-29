@@ -1,0 +1,17 @@
+{
+  "body": {
+    "activityFiles": [
+      {
+        "userId": "xxxxxxxx-xxxx-xxxx-xxxxx-xxxxxxxxxxxx",
+        "userAccessToken": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx",
+        "summaryId": "xxxxxxxxxxx",
+        "fileType": "FIT",
+        "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=xxxxxxxxxxx",
+        "startTimeInSeconds": 1531242342,
+        "activityId": 6827882446,
+        "activityName": "Leiden Cycling",
+        "manual": false
+      }
+    ]
+  }
+}

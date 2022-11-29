@@ -1,0 +1,11 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "sam-health-integration"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1tr1psrk20dnq"
+s3_prefix = "sam-health-integration"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "AppName=\"svc_integration_garmin_serverless\" Stage=\"develop\" SdvBaseUrl=\"https://df9dc980cc97.ngrok.io\" SendToBackend=\"True\""

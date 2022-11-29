@@ -1,0 +1,20 @@
+{
+   "body":{
+      "activities":[
+                  {
+                "userId": "xxxxxxxx-xxxx-xxxx-xxxxx-xxxxxxxxxxxx",
+                "userAccessToken": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx",
+                "summaryId": "xxxxxxxxxxx",
+                "durationInSeconds": 3300,
+                "startTimeInSeconds": 1616522807,
+                "startTimeOffsetInSeconds": 3600,
+                "activityType": "RUNNING",
+                "averageSpeedInMetersPerSecond": 2.438,
+                "averagePaceInMinutesPerKilometer": 6.836205,
+                "deviceName": "unknown",
+                "distanceInMeters": 8046.72,
+                "manual": true
+            }
+      ]
+   }
+}
