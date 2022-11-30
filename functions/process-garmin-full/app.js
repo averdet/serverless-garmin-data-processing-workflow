@@ -11,10 +11,14 @@ var moment = require("moment");
 const utils = require("/opt/utility/utils.js");
 const s3Operation = require("/opt/utility/aws_s3_service.js");
 const lambdaGateway = require("/opt/utility/lambda_gateway.js");
-const BackendService = require("./backend.service");
-const AuthService = require("./auth.service");
-const dynamoDBService = require("/opt/utility/aws_dynamodb_service.js");
+let _ = require("lodash");
 
+const config = {
+  region: process.env.AWS_REGION,
+  endpoint: process.env.endpoint,
+};
+const tableName = process.env.tableName;
+const docClient = new AWS.DynamoDB.DocumentClient(config);
 const integration = process.env.integration;
 
 exports.lambdaHandler = async (event, context, callback) => {
@@ -105,58 +109,61 @@ exports.lambdaHandler = async (event, context, callback) => {
   }
   body.data = transformedData;
 
-  let backend_service = new BackendService();
-  let auth_service = new AuthService();
-  let key;
-  if (body.isBinary) {
-    key = {
-      UserId: {
-        S: Array.isArray(body.data) ? body.data[0].userId : body.data.userId,
-      },
-    };
-  } else {
-    key = {
-      UserId: {
-        S: Array.isArray(body.data) ? body.data[0].user_id : body.data.user_id,
-      },
-    };
+  var splitRecordsBy25 = _.chunk(body.data, 25);
+  for (let i = 0; i < splitRecordsBy25.length; i++) {
+    var putItems = [];
+    putItems = wrapRecord(body.type, splitRecordsBy25[i]);
+    var tableItems = {};
+    tableItems[tableName] = putItems;
+    await writeItems(tableItems, 0, context, i);
   }
-  const user = await dynamoDBService.getPayload(key, process.env.User_Table);
-  let token = await auth_service.login(
-    parseInt(Object.values(user.Item.uuid)[0])
-  );
-  let consolidatedData = [];
-  if (body.isBinary) {
-    if (Array.isArray(body.data)) {
-      for (i = 0; i < body.data.length; i++) {
-        let tempData = await s3Operation.getPayload(
-          body.data[i].fitDataKey,
-          process.env.BUCKET_NAME
-        );
-        consolidatedData.push(JSON.parse(tempData));
-      }
-    } else {
-      let tempData = await s3Operation.getPayload(
-        body.data.fitDataKey,
-        process.env.BUCKET_NAME
-      );
-      consolidatedData.push(JSON.parse(tempData));
-    }
-  } else {
-    Array.isArray(body.data)
-      ? consolidatedData.push(...body.data)
-      : consolidatedData.push(body.data);
-  }
-  wrappedData = utils.wrapDataToSendBaseplatform(
-    process.env.integration,
-    consolidatedData,
-    body.isBinary
-  );
-  await backend_service.sendData(wrappedData, token.access_token);
-  body.status = "Record Sent to Base Platform";
-  lambdaGateway.outputGateway(JSON.stringify(body), callback);
+
+  lambdaGateway.outputGateway(JSON.stringify({'Status': 'Processed'}), callback);
 };
 
 function createMetadata(type, body, date) {
   return `Integration=${integration}&Type=${type}&Date=${date}&User=${body.userId}&Status=Unprocessed`;
+}
+
+function wrapRecord(type, body) {
+  var items = [];
+  body.forEach(function (record) {
+    items.push({
+      PutRequest: {
+        Item: {
+          Id: integration + record.summary_id,
+          Type: type,
+          UserId: record.user_id,
+          Timestamp: Date.now(),
+          Record: record,
+        },
+      },
+    });
+  });
+  return items;
+}
+
+async function writeItems(items, retries, context, index) {
+  try {
+    console.log("Processing Batch ", index + 1);
+    const response = await docClient
+      .batchWrite({ RequestItems: items })
+      .promise();
+
+    if (Object.keys(response.UnprocessedItems).length) {
+      console.log("Unprocessed items remain, retrying.");
+      var delay = Math.min(
+        Math.pow(2, retries) * 100,
+        context.getRemainingTimeInMillis() - 200
+      );
+      setTimeout(function () {
+        writeItems(response.UnprocessedItems, retries + 1);
+      }, delay);
+    } else {
+      console.log("Processed Batch ", index + 1);
+    }
+  } catch (error) {
+    console.log("DDB call failed: " + error, error.stack);
+    return context.fail(error);
+  }
 }
