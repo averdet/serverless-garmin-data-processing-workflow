@@ -18,7 +18,7 @@ Parameters:
     Description: Enter SDV URL.
   SendToBackend:
     Type: String
-    Default: True
+    Default: False
     # AllowedValues:
     #   - True
     #   - False
@@ -245,6 +245,110 @@ Resources:
       Timeout: 60
       Layers:
         - !Ref UtilityLayer
+  HandleWebhookGarminLandingZoneFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: functions/handle-garmin-webhook-save-landing/
+      Handler: app.lambdaHandler
+      Runtime: nodejs14.x
+      Tracing: Active
+      Timeout: 60
+      Layers:
+        - !Ref UtilityLayer
+      Environment:
+        Variables:
+          SEND_DATA_BACKEND: !Sub '${SendToBackend}'
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /handle-webhook-fused-1
+            Method: ANY
+      Policies:
+        - S3WritePolicy:
+            BucketName: health-integration-garmin
+        - S3ReadPolicy:
+            BucketName: health-integration-garmin
+        - S3CrudPolicy:
+            BucketName: health-integration-garmin
+        - Statement:
+          - Sid: PublishLayers
+            Effect: Allow
+            Action:
+              - lambda:PublishLayerVersion
+            Resource: 'arn:aws:lambda:*:*:layer:*:*'
+          - Sid: ManageLayerVersions
+            Effect: Allow
+            Action:
+              - lambda:GetLayerVersion
+              - lambda:Getlayerversion
+              - lambda:DeleteLayerVersion
+              - lambda:AddLayerVersionPermission
+              - lambda:RemoveLayerVersionPermission
+            Resource: '*'
+          - Sid: S3CustomPolicy
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:PutObjectAcl
+              - s3:PutLifecycleConfiguration
+              - s3:GetObjectTagging
+              - s3:GetObjectVersionTagging
+              - s3:PutObjectTagging
+              - s3:PutObjectVersionTagging
+            Resource: 'arn:aws:s3:::health-integration-garmin/*'
+  HandleWebhookGarminLandingZoneFunctionProcessDailies:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: functions/handle-process-garmin-save-landing/
+      Handler: app.lambdaHandler
+      Runtime: nodejs14.x
+      Tracing: Active
+      Timeout: 60
+      Layers:
+        - !Ref UtilityLayer
+      Environment:
+        Variables:
+          SEND_DATA_BACKEND: !Sub '${SendToBackend}'
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /handle-webhook-fused-2
+            Method: ANY
+      Policies:
+        - S3WritePolicy:
+            BucketName: health-integration-garmin
+        - S3ReadPolicy:
+            BucketName: health-integration-garmin
+        - S3CrudPolicy:
+            BucketName: health-integration-garmin
+        - Statement:
+          - Sid: PublishLayers
+            Effect: Allow
+            Action:
+              - lambda:PublishLayerVersion
+            Resource: 'arn:aws:lambda:*:*:layer:*:*'
+          - Sid: ManageLayerVersions
+            Effect: Allow
+            Action:
+              - lambda:GetLayerVersion
+              - lambda:Getlayerversion
+              - lambda:DeleteLayerVersion
+              - lambda:AddLayerVersionPermission
+              - lambda:RemoveLayerVersionPermission
+            Resource: '*'
+          - Sid: S3CustomPolicy
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:PutObjectAcl
+              - s3:PutLifecycleConfiguration
+              - s3:GetObjectTagging
+              - s3:GetObjectVersionTagging
+              - s3:PutObjectTagging
+              - s3:PutObjectVersionTagging
+            Resource: 'arn:aws:s3:::health-integration-garmin/*'
   UtilityLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
