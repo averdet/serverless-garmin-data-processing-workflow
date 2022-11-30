@@ -449,6 +449,24 @@ Resources:
               - s3:PutObjectTagging
               - s3:PutObjectVersionTagging
             Resource: 'arn:aws:s3:::health-integration-garmin/*'
+  ProcessDailiesSaveGarminWebhookProcessedFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: functions/process-garmin-dailies-save-processed/
+      Handler: app.lambdaHandler
+      Runtime: nodejs14.x
+      Tracing: Active
+      Timeout: 60
+      Layers:
+        - !Ref UtilityLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: HealthIntegrationProcessed
+        - DynamoDBReadPolicy:
+            TableName: HealthIntegrationProcessed
+      Environment:
+        Variables:
+          tableName: HealthIntegrationProcessed
   UtilityLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
