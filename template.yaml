@@ -306,6 +306,204 @@ Resources:
               LogGroupArn: !GetAtt SAMLogs.Arn
         IncludeExecutionData: true
         Level: ALL
+  HealthIntegrationFusionS4:
+    Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
+    Description: AWS Step Function Eval to perform processing of Garmin data
+    Properties:
+      DefinitionUri: statemachine/health-integration-garmin-stepfunction-s4.asl.json
+      Tracing:
+        Enabled: True
+      DefinitionSubstitutions:
+        SaveGarminWebhookProcessedFunctionArn: !GetAtt SaveGarminWebhookProcessedFunction.Arn
+        HandleGarminWebhookFunctionArn: !GetAtt HandleGarminWebhookFunction.Arn
+        HandleWebhookGarminLandingZoneFunctionArn: !GetAtt HandleWebhookGarminLandingZoneFunction.Arn
+        HandleWebhookGarminLandingZoneFunctionProcessDailiesArn: !GetAtt HandleWebhookGarminLandingZoneFunctionProcessDailies.Arn
+        ProcessGarminFullArn: !GetAtt ProcessGarminFull.Arn
+        GarminWebhookLandingZoneFunctionProcessDailiesArn: !GetAtt GarminWebhookLandingZoneFunctionProcessDailies.Arn
+        ProcessDailiesSaveGarminWebhookProcessedFunctionArn: !GetAtt ProcessDailiesSaveGarminWebhookProcessedFunction.Arn
+        GarminWebhookLandingZoneFunctionProcessDailiesSaveProcessedArn: !GetAtt GarminWebhookLandingZoneFunctionProcessDailiesSaveProcessed.Arn
+        FetchGarminFitFileFunctionArn: !GetAtt FetchGarminFitFileFunction.Arn
+        GarminWebhookLandingZoneFunctionArn: !GetAtt GarminWebhookLandingZoneFunction.Arn
+        ProcessGarminActivitiesFunctionArn: !GetAtt ProcessGarminActivitiesFunction.Arn
+        ProcessGarminDailiesFunctionArn: !GetAtt ProcessGarminDailiesFunction.Arn
+        UploadBaseplatformFunctionArn: !GetAtt UploadBaseplatformFunction.Arn
+      Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - LambdaInvokePolicy:
+            FunctionName: !Ref HandleWebhookGarminLandingZoneFunctionProcessDailies
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessGarminFull
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GarminWebhookLandingZoneFunctionProcessDailies
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessDailiesSaveGarminWebhookProcessedFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GarminWebhookLandingZoneFunctionProcessDailiesSaveProcessed
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SaveGarminWebhookProcessedFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref HandleWebhookGarminLandingZoneFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref HandleGarminWebhookFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FetchGarminFitFileFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GarminWebhookLandingZoneFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessGarminActivitiesFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessGarminDailiesFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref UploadBaseplatformFunction
+        - AWSSecretsManagerRotationPolicy:
+            FunctionName: !Ref FetchGarminFitFileFunction
+        - CloudWatchLogsFullAccess
+        - CloudWatchPutMetricPolicy: { }
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: ANY
+            Path: /start-health-garmin-eval-s4
+            RestApiId:
+              Ref: MyApi
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt SAMLogs.Arn
+        IncludeExecutionData: true
+        Level: ALL
+  HealthIntegrationFusionS5:
+    Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
+    Description: AWS Step Function Eval to perform processing of Garmin data
+    Properties:
+      DefinitionUri: statemachine/health-integration-garmin-stepfunction-s5.asl.json
+      Tracing:
+        Enabled: True
+      DefinitionSubstitutions:
+        SaveGarminWebhookProcessedFunctionArn: !GetAtt SaveGarminWebhookProcessedFunction.Arn
+        HandleGarminWebhookFunctionArn: !GetAtt HandleGarminWebhookFunction.Arn
+        HandleWebhookGarminLandingZoneFunctionArn: !GetAtt HandleWebhookGarminLandingZoneFunction.Arn
+        HandleWebhookGarminLandingZoneFunctionProcessDailiesArn: !GetAtt HandleWebhookGarminLandingZoneFunctionProcessDailies.Arn
+        ProcessGarminFullArn: !GetAtt ProcessGarminFull.Arn
+        GarminWebhookLandingZoneFunctionProcessDailiesArn: !GetAtt GarminWebhookLandingZoneFunctionProcessDailies.Arn
+        ProcessDailiesSaveGarminWebhookProcessedFunctionArn: !GetAtt ProcessDailiesSaveGarminWebhookProcessedFunction.Arn
+        GarminWebhookLandingZoneFunctionProcessDailiesSaveProcessedArn: !GetAtt GarminWebhookLandingZoneFunctionProcessDailiesSaveProcessed.Arn
+        FetchGarminFitFileFunctionArn: !GetAtt FetchGarminFitFileFunction.Arn
+        GarminWebhookLandingZoneFunctionArn: !GetAtt GarminWebhookLandingZoneFunction.Arn
+        ProcessGarminActivitiesFunctionArn: !GetAtt ProcessGarminActivitiesFunction.Arn
+        ProcessGarminDailiesFunctionArn: !GetAtt ProcessGarminDailiesFunction.Arn
+        UploadBaseplatformFunctionArn: !GetAtt UploadBaseplatformFunction.Arn
+      Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - LambdaInvokePolicy:
+            FunctionName: !Ref HandleWebhookGarminLandingZoneFunctionProcessDailies
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessGarminFull
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GarminWebhookLandingZoneFunctionProcessDailies
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessDailiesSaveGarminWebhookProcessedFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GarminWebhookLandingZoneFunctionProcessDailiesSaveProcessed
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SaveGarminWebhookProcessedFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref HandleWebhookGarminLandingZoneFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref HandleGarminWebhookFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FetchGarminFitFileFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GarminWebhookLandingZoneFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessGarminActivitiesFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessGarminDailiesFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref UploadBaseplatformFunction
+        - AWSSecretsManagerRotationPolicy:
+            FunctionName: !Ref FetchGarminFitFileFunction
+        - CloudWatchLogsFullAccess
+        - CloudWatchPutMetricPolicy: { }
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: ANY
+            Path: /start-health-garmin-eval-s5
+            RestApiId:
+              Ref: MyApi
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt SAMLogs.Arn
+        IncludeExecutionData: true
+        Level: ALL
+  HealthIntegrationFusionS6:
+    Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
+    Description: AWS Step Function Eval to perform processing of Garmin data
+    Properties:
+      DefinitionUri: statemachine/health-integration-garmin-stepfunction-s6.asl.json
+      Tracing:
+        Enabled: True
+      DefinitionSubstitutions:
+        SaveGarminWebhookProcessedFunctionArn: !GetAtt SaveGarminWebhookProcessedFunction.Arn
+        HandleGarminWebhookFunctionArn: !GetAtt HandleGarminWebhookFunction.Arn
+        HandleWebhookGarminLandingZoneFunctionArn: !GetAtt HandleWebhookGarminLandingZoneFunction.Arn
+        HandleWebhookGarminLandingZoneFunctionProcessDailiesArn: !GetAtt HandleWebhookGarminLandingZoneFunctionProcessDailies.Arn
+        ProcessGarminFullArn: !GetAtt ProcessGarminFull.Arn
+        GarminWebhookLandingZoneFunctionProcessDailiesArn: !GetAtt GarminWebhookLandingZoneFunctionProcessDailies.Arn
+        ProcessDailiesSaveGarminWebhookProcessedFunctionArn: !GetAtt ProcessDailiesSaveGarminWebhookProcessedFunction.Arn
+        GarminWebhookLandingZoneFunctionProcessDailiesSaveProcessedArn: !GetAtt GarminWebhookLandingZoneFunctionProcessDailiesSaveProcessed.Arn
+        FetchGarminFitFileFunctionArn: !GetAtt FetchGarminFitFileFunction.Arn
+        GarminWebhookLandingZoneFunctionArn: !GetAtt GarminWebhookLandingZoneFunction.Arn
+        ProcessGarminActivitiesFunctionArn: !GetAtt ProcessGarminActivitiesFunction.Arn
+        ProcessGarminDailiesFunctionArn: !GetAtt ProcessGarminDailiesFunction.Arn
+        UploadBaseplatformFunctionArn: !GetAtt UploadBaseplatformFunction.Arn
+      Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - LambdaInvokePolicy:
+            FunctionName: !Ref HandleWebhookGarminLandingZoneFunctionProcessDailies
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessGarminFull
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GarminWebhookLandingZoneFunctionProcessDailies
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessDailiesSaveGarminWebhookProcessedFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GarminWebhookLandingZoneFunctionProcessDailiesSaveProcessed
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SaveGarminWebhookProcessedFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref HandleWebhookGarminLandingZoneFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref HandleGarminWebhookFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FetchGarminFitFileFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GarminWebhookLandingZoneFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessGarminActivitiesFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessGarminDailiesFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref UploadBaseplatformFunction
+        - AWSSecretsManagerRotationPolicy:
+            FunctionName: !Ref FetchGarminFitFileFunction
+        - CloudWatchLogsFullAccess
+        - CloudWatchPutMetricPolicy: { }
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: ANY
+            Path: /start-health-garmin-eval-s6
+            RestApiId:
+              Ref: MyApi
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt SAMLogs.Arn
+        IncludeExecutionData: true
+        Level: ALL
   HandleGarminWebhookFunction:
     Type: AWS::Serverless::Function
     Properties:
