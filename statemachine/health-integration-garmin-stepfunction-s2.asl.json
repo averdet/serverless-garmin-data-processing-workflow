@@ -1,0 +1,50 @@
+{
+  "StartAt": "Handle Garmin Webhook + Save Garmin Webhook - Landing Zone + Process Dailies",
+  "States": {
+    "Handle Garmin Webhook + Save Garmin Webhook - Landing Zone + Process Dailies": {
+      "Type": "Task",
+      "Resource": "${HandleWebhookGarminLandingZoneFunctionProcessDailiesArn}",
+      "TimeoutSeconds": 60,
+      "Next": "Check Purpose Type",
+      "Parameters": {
+        "result.$": "$.body"
+      },
+      "ResultSelector": {
+        "result.$": "States.StringToJson($.body)"
+      }
+    },
+    "Check Purpose Type": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.result.sendDataToBackend",
+          "BooleanEquals": true,
+          "Next": "Upload To Baseplatform"
+        }
+      ],
+      "Default": "Save Garmin Processed Data"
+    },
+    "Upload To Baseplatform": {
+      "Type": "Task",
+      "Resource": "${UploadBaseplatformFunctionArn}",
+      "TimeoutSeconds": 60,
+      "Parameters": {
+        "RetryCount.$": "$$.State.RetryCount",
+        "result.$": "$.result"
+      },
+      "ResultSelector": {
+        "result.$": "States.StringToJson($.body)"
+      },
+      "End": true
+    },
+    "Save Garmin Processed Data": {
+      "Type": "Task",
+      "Resource": "${SaveGarminWebhookProcessedFunctionArn}",
+      "TimeoutSeconds": 60,
+      "ResultSelector": {
+        "result.$": "States.StringToJson($.body)"
+      },
+      "End": true
+    }
+  }
+}
