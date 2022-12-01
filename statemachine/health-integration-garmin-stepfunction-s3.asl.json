@@ -1,0 +1,18 @@
+{
+  "StartAt": "Handle Garmin Webhook + Save Garmin Webhook - Landing Zone + Process Dailies + Save",
+  "States": {
+    "Handle Garmin Webhook + Save Garmin Webhook - Landing Zone + Process Dailies + Save": {
+      "Type": "Task",
+      "Resource": "${ProcessGarminFullArn}",
+      "TimeoutSeconds": 60,
+      "Next": "Check Purpose Type",
+      "Parameters": {
+        "result.$": "$.body"
+      },
+      "ResultSelector": {
+        "result.$": "States.StringToJson($.body)"
+      },
+      "End": true
+    }
+  }
+}
