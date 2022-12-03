@@ -22,12 +22,14 @@ const integration = process.env.integration;
 exports.lambdaHandler = async (event, context, callback) => {
   let body = lambdaGateway.inputGateway(event, context);
   // normalize keys
-  let transformedData;
-  transformedData = utils.normalizeKeys(body.data);
-  transformedData = utils.keepField(
-    transformedData,
-    utils.garminHeaderParams + utils.garminDailiesAllowedParams
-  );
+  let transformedData = [];
+  for (let i = 0; i < body.data.length; i++) {
+    transformedData[i] = utils.normalizeKeys(body.data[i]);
+    transformedData[i] = utils.keepField(
+      transformedData[i],
+      utils.garminHeaderParams + utils.garminDailiesAllowedParams
+    );
+  }
   body.data = transformedData
 
   var splitRecordsBy25 = _.chunk(body.data, 25);
