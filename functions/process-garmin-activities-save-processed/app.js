@@ -8,6 +8,7 @@
  */
 let _ = require("lodash");
 var AWS = require("aws-sdk");
+var moment = require("moment");
 const utils = require("/opt/utility/utils.js");
 const lambdaGateway = require("/opt/utility/lambda_gateway.js");
 

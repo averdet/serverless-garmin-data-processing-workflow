@@ -1,7 +1,7 @@
 {
-  "name": "process_garmin_dailies",
+  "name": "handle_garmin_webhook",
   "version": "1.0.0",
-  "description": "Handling Processing of Garmin Dailies",
+  "description": "Handling Garmin Webhook",
   "main": "app.js",
   "repository": "TODO",
   "author": "SAM CLI",
