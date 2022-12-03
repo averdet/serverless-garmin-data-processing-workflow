@@ -32,8 +32,8 @@ exports.lambdaHandler = async (event, context, callback) => {
           topic: 'research/output/f4',
           payload: JSON.stringify({"result": body}),
           queueFullPolicy: 'AllOrError',
-      };
-      iotClient.publish(pubOpt, publishCallback);
+  };
+  iotClient.publish(pubOpt, publishCallback);
 
   //lambdaGateway.outputGateway(JSON.stringify(body), callback);
 };
