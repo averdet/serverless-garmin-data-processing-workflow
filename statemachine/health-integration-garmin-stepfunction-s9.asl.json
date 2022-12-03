@@ -15,7 +15,7 @@
     "Fetch Garmin Fit File": {
       "Type": "Task",
       "Resource": "${FetchGarminFitFileFunctionArn}",
-      "Next": "Save Garmin Webhook - Landing Zone + Process Dailies",
+      "Next": "Save Garmin Webhook - Landing Zone + Process Activities",
       "TimeoutSeconds": 60,
       "ResultSelector": {
         "result.$": "States.StringToJson($.body)"
@@ -30,11 +30,11 @@
           "Next": "Fetch Garmin Fit File"
         }
       ],
-      "Default": "Save Garmin Webhook - Landing Zone + Process Dailies"
+      "Default": "Save Garmin Webhook - Landing Zone + Process Activities"
     },
-    "Save Garmin Webhook - Landing Zone + Process Dailies": {
+    "Save Garmin Webhook - Landing Zone + Process Activities": {
       "Type": "Task",
-      "Resource": "${GarminWebhookLandingZoneFunctionProcessDailiesArn}",
+      "Resource": "${GarminWebhookLandingZoneFunctionProcessActivitiesArn}",
       "TimeoutSeconds": 60,
       "ResultSelector": {
         "result.$": "States.StringToJson($.body)"
