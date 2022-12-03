@@ -54,12 +54,31 @@ exports.lambdaHandler = async (event, context, callback) => {
   let transformedData = [];
   for (let i = 0; i < body.data.length; i++) {
     transformedData[i] = utils.normalizeKeys(body.data[i]);
-    transformedData[i] = utils.keepField(
-      transformedData[i],
-      utils.garminHeaderParams + utils.garminDailiesAllowedParams
-    );
+    transformedData[i] = utils.addNewField(transformedData[i], {
+      calendar_date: moment(
+        transformedData[i].start_time_in_seconds +
+          transformedData[i].start_time_offset_in_seconds,
+        "X"
+      ).format("YYYY-MM-DD"),
+      start_time: moment(
+        transformedData[i].start_time_in_seconds +
+          transformedData[i].start_time_offset_in_seconds,
+        "X"
+      ).format(),
+      end_time: moment(
+        transformedData[i].start_time_in_seconds +
+          transformedData[i].start_time_offset_in_seconds +
+          transformedData[i].duration_in_seconds,
+        "X"
+      ).format(),
+    });
+    transformedData[i] = utils.removeField(transformedData[i], [
+      "start_time_in_seconds",
+      "start_time_offset_in_seconds",
+      "duration_in_seconds",
+    ]);
   }
-  body.data = transformedData
+  body.data = transformedData;
 
   var splitRecordsBy25 = _.chunk(body.data, 25);
   for (let i = 0; i < splitRecordsBy25.length; i++) {

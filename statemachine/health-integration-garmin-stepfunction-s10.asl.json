@@ -15,7 +15,7 @@
     "Fetch Garmin Fit File": {
       "Type": "Task",
       "Resource": "${FetchGarminFitFileFunctionArn}",
-      "Next": "Save Garmin Webhook - Landing Zone + Process Dailies",
+      "Next": "Save Garmin Webhook - Landing Zone",
       "TimeoutSeconds": 60,
       "ResultSelector": {
         "result.$": "States.StringToJson($.body)"
@@ -30,44 +30,20 @@
           "Next": "Fetch Garmin Fit File"
         }
       ],
-      "Default": "Save Garmin Webhook - Landing Zone + Process Dailies"
+      "Default": "Save Garmin Webhook - Landing Zone"
     },
-    "Save Garmin Webhook - Landing Zone + Process Dailies": {
+    "Save Garmin Webhook - Landing Zone": {
       "Type": "Task",
-      "Resource": "${GarminWebhookLandingZoneFunctionProcessDailiesArn}",
+      "Resource": "${GarminWebhookLandingZoneFunctionArn}",
       "TimeoutSeconds": 60,
       "ResultSelector": {
         "result.$": "States.StringToJson($.body)"
       },
-      "Next": "Check Purpose Type"
+      "Next": "Process Activities + Save Garmin Processed Data"
     },
-    "Check Purpose Type": {
-      "Type": "Choice",
-      "Choices": [
-        {
-          "Variable": "$.result.sendDataToBackend",
-          "BooleanEquals": true,
-          "Next": "Upload To Baseplatform"
-        }
-      ],
-      "Default": "Save Garmin Processed Data"
-    },
-    "Upload To Baseplatform": {
+    "Process Activities + Save Garmin Processed Data": {
       "Type": "Task",
-      "Resource": "${UploadBaseplatformFunctionArn}",
-      "TimeoutSeconds": 60,
-      "Parameters": {
-        "RetryCount.$": "$$.State.RetryCount",
-        "result.$": "$.result"
-      },
-      "ResultSelector": {
-        "result.$": "States.StringToJson($.body)"
-      },
-      "End": true
-    },
-    "Save Garmin Processed Data": {
-      "Type": "Task",
-      "Resource": "${SaveGarminWebhookProcessedFunctionArn}",
+      "Resource": "${ProcessActivitiesSaveGarminWebhookProcessedFunctionArn}",
       "TimeoutSeconds": 60,
       "ResultSelector": {
         "result.$": "States.StringToJson($.body)"

@@ -1,18 +1,17 @@
 /**
- * Lambda Function that performs saving of data into Landing Zone.
- * This Function performs batch write
+ * Lambda function to Handle Webhook Request
  *
  * @param {Object} event - Input event to the Lambda function
  * @param {Object} context - Lambda Context runtime methods and attributes
  *
  *
  */
-let _ = require("lodash");
 const AWS = require("aws-sdk");
 var moment = require("moment");
-const s3Operation = require("/opt/utility/aws_s3_service.js");
 const utils = require("/opt/utility/utils.js");
+const s3Operation = require("/opt/utility/aws_s3_service.js");
 const lambdaGateway = require("/opt/utility/lambda_gateway.js");
+let _ = require("lodash");
 
 const config = {
   region: process.env.AWS_REGION,
@@ -23,7 +22,56 @@ const docClient = new AWS.DynamoDB.DocumentClient(config);
 const integration = process.env.integration;
 
 exports.lambdaHandler = async (event, context, callback) => {
-  const body = lambdaGateway.inputGateway(event, context);
+  const eventBody = lambdaGateway.inputGateway(event, context);
+  let responseBody;
+
+  if (eventBody.dailies) {
+    console.info("Garmin Dailies Available");
+    responseBody = {
+      type: "dailies",
+      isBinary: false,
+      data: eventBody.dailies,
+    };
+  } else if (eventBody.epochs) {
+    console.info("Garmin Epochs Available");
+    responseBody = {
+      type: "epochs",
+      isBinary: false,
+      data: eventBody.epochs,
+    };
+  } else if (eventBody.activities) {
+    console.info("Garmin Activities Available");
+    responseBody = {
+      type: "activities",
+      isBinary: false,
+      data: eventBody.activities,
+    };
+  } else if (eventBody.activityDetails) {
+    console.info("Garmin Activity Details Available");
+    responseBody = {
+      type: "activityDetails",
+      isBinary: false,
+      data: eventBody.activityDetails,
+    };
+  } else if (eventBody.activityFiles) {
+    console.info("Garmin Activity Files Available");
+    responseBody = {
+      type: "activityFiles",
+      isBinary: true,
+      data: eventBody.activityFiles,
+    };
+  } else {
+    console.info("Garmin Format Unsupported - Please Conteact Admin");
+    responseBody = {
+      type: "unsupported",
+      data: null,
+    };
+  }
+
+  responseBody.sendDataToBackend =
+    process.env.SEND_DATA_BACKEND === "True" ? true : false;
+  responseBody.applyMapState = process.env.MAP_STATE === "true" ? true : false;
+  let body = responseBody;
   const year = moment().format("YYYY");
   const month = moment().format("MM");
   const day = moment().format("DD");
@@ -50,16 +98,35 @@ exports.lambdaHandler = async (event, context, callback) => {
       body.data[index].landingZonePath = value;
     });
   });
-    
+
   let transformedData = [];
   for (let i = 0; i < body.data.length; i++) {
     transformedData[i] = utils.normalizeKeys(body.data[i]);
-    transformedData[i] = utils.keepField(
-      transformedData[i],
-      utils.garminHeaderParams + utils.garminDailiesAllowedParams
-    );
+    transformedData[i] = utils.addNewField(transformedData[i], {
+      calendar_date: moment(
+        transformedData[i].start_time_in_seconds +
+          transformedData[i].start_time_offset_in_seconds,
+        "X"
+      ).format("YYYY-MM-DD"),
+      start_time: moment(
+        transformedData[i].start_time_in_seconds +
+          transformedData[i].start_time_offset_in_seconds,
+        "X"
+      ).format(),
+      end_time: moment(
+        transformedData[i].start_time_in_seconds +
+          transformedData[i].start_time_offset_in_seconds +
+          transformedData[i].duration_in_seconds,
+        "X"
+      ).format(),
+    });
+    transformedData[i] = utils.removeField(transformedData[i], [
+      "start_time_in_seconds",
+      "start_time_offset_in_seconds",
+      "duration_in_seconds",
+    ]);
   }
-  body.data = transformedData
+  body.data = transformedData;
 
   var splitRecordsBy25 = _.chunk(body.data, 25);
   for (let i = 0; i < splitRecordsBy25.length; i++) {
@@ -119,4 +186,3 @@ async function writeItems(items, retries, context, index) {
     return context.fail(error);
   }
 }
-

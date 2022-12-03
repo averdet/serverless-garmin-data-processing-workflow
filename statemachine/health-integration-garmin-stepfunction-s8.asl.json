@@ -1,0 +1,17 @@
+{
+  "StartAt": "Garmin Full Activities Process",
+  "States": {
+    "Garmin Full Activities Process": {
+      "Type": "Task",
+      "Resource": "${ProcessGarminFull2Arn}",
+      "TimeoutSeconds": 60,
+      "Parameters": {
+        "result.$": "$.body"
+      },
+      "ResultSelector": {
+        "result.$": "States.StringToJson($.body)"
+      },
+      "End": true
+    }
+  }
+}
